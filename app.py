@@ -7,9 +7,16 @@ import os
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Use environment variable for database URL, default to SQLite
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///visitors.db')
+# Database configuration
+DB_USER = os.environ.get('DB_USER', 'your_db_user')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'your_db_password')
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_NAME = os.environ.get('DB_NAME', 'your_db_name')
+
+# MySQL connection string
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-this')
 db = SQLAlchemy(app)
 
 class Visitor(db.Model):
