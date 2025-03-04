@@ -3,18 +3,37 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from flask_cors import CORS
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
-# Database configuration
-DB_USER = os.environ.get('DB_USER', 'your_db_user')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'your_db_password')
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_NAME = os.environ.get('DB_NAME', 'your_db_name')
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# MySQL connection string
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+# Database configuration
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+DB_HOST = os.environ.get('DB_HOST')
+DB_NAME = os.environ.get('DB_NAME')
+
+# Always default to SQLite unless all MySQL credentials are properly set
+if all([DB_USER, DB_PASSWORD, DB_HOST, DB_NAME]):
+    try:
+        import pymysql
+        pymysql.install_as_MySQLdb()
+        # MySQL connection string
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}'
+        logger.info("Using MySQL database")
+    except Exception as e:
+        logger.error(f"Failed to configure MySQL: {e}")
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///monitor.db'
+        logger.info("Falling back to SQLite database")
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///monitor.db'
+    logger.info("Using SQLite database")
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-this')
 db = SQLAlchemy(app)
@@ -34,6 +53,7 @@ class WebcamCapture(db.Model):
 
 with app.app_context():
     db.create_all()
+    
 
 @app.route('/')
 def index():
@@ -76,6 +96,10 @@ def save_capture():
     db.session.add(capture)
     db.session.commit()
     return jsonify({"status": "success"})
+    
+@app.route('/test')
+def test():
+    return 'Flask application is running correctly!'
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host='127.0.0.1', port=5000, debug=False)

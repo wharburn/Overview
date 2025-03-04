@@ -7,13 +7,15 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
-      - key: DB_HOST
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_NAME
-        sync: false
       - key: SECRET_KEY
         generateValue: true
+    # Database config is optional - will use SQLite by default
+    # Uncomment and set these if you want to use MySQL
+    # - key: DB_HOST
+    #   sync: false
+    # - key: DB_USER
+    #   sync: false
+    # - key: DB_PASSWORD
+    #   sync: false
+    # - key: DB_NAME
+    #   sync: false
