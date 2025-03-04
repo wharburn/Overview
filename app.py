@@ -71,6 +71,13 @@ def webcam():
 
 @app.route('/record_visit')
 def record_visit():
+    # Get the referrer
+    referrer = request.headers.get('Referer', '')
+    
+    # Skip recording if the request is from our own monitoring app
+    if 'monitor' in request.host.lower():
+        return jsonify({"status": "skipped", "reason": "monitor self-request"})
+        
     ip_address = request.remote_addr
     page_url = request.args.get('page', '')
     user_agent = request.headers.get('User-Agent')
